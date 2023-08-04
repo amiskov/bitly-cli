@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "bitly-cli"
+version = "0.1.0"
+description = "CLI client for Bitly"
+authors = ["Andrey Miskov <amiskov@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.31.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
