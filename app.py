@@ -7,6 +7,10 @@ import requests
 dotenv.load_dotenv()
 
 BITLY_TOKEN = os.getenv('BITLY_TOKEN')
+if not BITLY_TOKEN:
+    print('Please, add your Bitly API token to `.env` file.',
+          'See `.env.example`.')
+    exit(1)
 
 
 def shorten_link(token: str, long_url: str) -> str:
@@ -15,16 +19,15 @@ def shorten_link(token: str, long_url: str) -> str:
     """
     bitly_url = 'https://api-ssl.bitly.com/v4/shorten'
     headers = {
-        "Authorization": f'Bearer {token}'
+        "Authorization": f'Bearer {token}',
     }
     payload = {
-        "domain": "bit.ly",
-        "long_url": long_url
+        "long_url": long_url,
     }
     response = requests.post(bitly_url, headers=headers, json=payload)
     response.raise_for_status()
-    json = response.json()
-    short_url = json['link']
+    bitlink_info = response.json()
+    short_url = bitlink_info['link']
     return short_url
 
 
@@ -36,42 +39,36 @@ def strip_bitlink_scheme(bitlink: str) -> str:
     'bit.ly/3Qt2cAW'
     """
     parsed_link = urlparse(bitlink)
-    return parsed_link.netloc + parsed_link.path
+    return f'{parsed_link.netloc}{parsed_link.path}'
 
 
 def is_bitlink(token: str, url: str) -> bool:
     """
     Returns `True` if the given `url` is valid bitlink for the given `token`.
 
-    >>> is_bitlink(TOKEN, 'bit.ly/3Qt2cAW')
+    >>> is_bitlink(BITLY_TOKEN, 'bit.ly/3Qt2cAW')
     True
-    >>> is_bitlink(TOKEN, 'https://bit.ly/3Qt2cAW')
+    >>> is_bitlink(BITLY_TOKEN, 'https://bit.ly/3Qt2cAW')
     True
-    >>> is_bitlink(TOKEN, 'https://hard.ly/3Qt2cAW')
+    >>> is_bitlink(BITLY_TOKEN, 'https://hard.ly/3Qt2cAW')
     False
     """
     url_no_scheme = strip_bitlink_scheme(url)
-    if not url_no_scheme.startswith('bit.ly'):
-        return False
-
     req_url = f'https://api-ssl.bitly.com/v4/bitlinks/{url_no_scheme}'
     headers = {
         "Authorization": f'Bearer {token}'
     }
     resp = requests.get(req_url, headers=headers)
-    resp.raise_for_status()
     return resp.ok
 
 
 def count_clicks(token: str, bitlink: str) -> int:
     """
-    `bitlink` must be valid short URL with no scheme (doesn't start with
-    `https://`, e.g. `bit.ly/blah123`) for the given `token`.
+    `bitlink` must be valid for the given `token`.
     """
-    parsed_link = urlparse(bitlink)
-    bitlink_no_scheme = parsed_link.netloc + parsed_link.path
-    req_url = f'https://api-ssl.bitly.com/v4/bitlinks/{bitlink_no_scheme}/' + \
-        'clicks'
+    bitlink_no_scheme = strip_bitlink_scheme(bitlink)
+    req_url = (f'https://api-ssl.bitly.com/v4/bitlinks/{bitlink_no_scheme}/'
+               'clicks/summary')
     headers = {
         "Authorization": f'Bearer {token}'
     }
@@ -80,9 +77,8 @@ def count_clicks(token: str, bitlink: str) -> int:
     )
     resp = requests.get(req_url, headers=headers, params=params)
     resp.raise_for_status()
-    json = resp.json()
-    only_clicks = [c['clicks'] for c in json['link_clicks']]
-    return sum(only_clicks)
+    clicks_info = resp.json()
+    return clicks_info['total_clicks']
 
 
 if __name__ == '__main__':
@@ -93,6 +89,4 @@ if __name__ == '__main__':
         else:
             print(f'Битлинк: {shorten_link(BITLY_TOKEN, user_url)}')
     except requests.exceptions.HTTPError as e:
-        print(e)
-    except Exception as e:
         print(e)
