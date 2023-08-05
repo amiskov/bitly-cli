@@ -4,14 +4,6 @@ from urllib.parse import urlparse
 import dotenv
 import requests
 
-dotenv.load_dotenv()
-
-BITLY_TOKEN = os.getenv('BITLY_TOKEN')
-if not BITLY_TOKEN:
-    print('Please, add your Bitly API token to `.env` file.',
-          'See `.env.example`.')
-    exit(1)
-
 
 def shorten_link(token: str, long_url: str) -> str:
     """
@@ -82,6 +74,14 @@ def count_clicks(token: str, bitlink: str) -> int:
 
 
 if __name__ == '__main__':
+    dotenv.load_dotenv()
+
+    BITLY_TOKEN = os.getenv('BITLY_TOKEN')
+    if not BITLY_TOKEN:
+        print('Please, add your Bitly API token to `.env` file.',
+              'See `.env.example`.')
+        exit(1)
+
     user_url = input('Enter a URL: ')
     try:
         if is_bitlink(BITLY_TOKEN, user_url):
