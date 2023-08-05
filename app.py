@@ -1,28 +1,12 @@
+import os
 from urllib.parse import urlparse
-import argparse
 
+import dotenv
 import requests
 
+dotenv.load_dotenv()
 
-parser = argparse.ArgumentParser(prog='Bitly CLI',
-                                 description='CLI client for Bitly.')
-parser.add_argument("--token", help="Bitly API token")
-args = parser.parse_args()
-
-TOKEN = args.token
-
-
-def get_user_data(token: str) -> str:
-    """
-    Returns Bitly user data for a given `token` in JSON.
-    """
-    url = 'https://api-ssl.bitly.com/v4/user'
-    headers = {
-        "Authorization": f'Bearer {token}'
-    }
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+BITLY_TOKEN = os.getenv('BITLY_TOKEN')
 
 
 def shorten_link(token: str, long_url: str) -> str:
@@ -104,10 +88,10 @@ def count_clicks(token: str, bitlink: str) -> int:
 if __name__ == '__main__':
     user_url = input('Enter a URL: ')
     try:
-        if is_bitlink(TOKEN, user_url):
-            print(count_clicks(TOKEN, user_url))
+        if is_bitlink(BITLY_TOKEN, user_url):
+            print(count_clicks(BITLY_TOKEN, user_url))
         else:
-            print(f'Битлинк: {shorten_link(TOKEN, user_url)}')
+            print(f'Битлинк: {shorten_link(BITLY_TOKEN, user_url)}')
     except requests.exceptions.HTTPError as e:
         print(e)
     except Exception as e:
