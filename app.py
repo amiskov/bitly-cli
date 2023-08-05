@@ -18,9 +18,7 @@ def shorten_link(token: str, long_url: str) -> str:
     }
     response = requests.post(bitly_url, headers=headers, json=payload)
     response.raise_for_status()
-    bitlink_info = response.json()
-    short_url = bitlink_info['link']
-    return short_url
+    return response.json()['link']
 
 
 def strip_bitlink_scheme(bitlink: str) -> str:
@@ -38,12 +36,10 @@ def is_bitlink(token: str, url: str) -> bool:
     """
     Returns `True` if the given `url` is valid bitlink for the given `token`.
 
-    >>> is_bitlink(BITLY_TOKEN, 'bit.ly/3Qt2cAW')
-    True
-    >>> is_bitlink(BITLY_TOKEN, 'https://bit.ly/3Qt2cAW')
-    True
-    >>> is_bitlink(BITLY_TOKEN, 'https://hard.ly/3Qt2cAW')
-    False
+    Examples:
+    is_bitlink('your-bitly-token', 'bit.ly/3Qt2cAW') # True
+    is_bitlink('your-bitly-token', 'https://es.pn/45gfogQ') # True (custom domain)
+    is_bitlink('your-bitly-token', 'https://hard.ly/3Qt2cAW') # False
     """
     url_no_scheme = strip_bitlink_scheme(url)
     req_url = f'https://api-ssl.bitly.com/v4/bitlinks/{url_no_scheme}'
@@ -69,24 +65,20 @@ def count_clicks(token: str, bitlink: str) -> int:
     )
     resp = requests.get(req_url, headers=headers, params=params)
     resp.raise_for_status()
-    clicks_info = resp.json()
-    return clicks_info['total_clicks']
+    return resp.json()['total_clicks']
+
+
+def main(token: str) -> None:
+    user_url = input('Enter a URL: ')
+    try:
+        if is_bitlink(token, user_url):
+            print(count_clicks(token, user_url))
+        else:
+            print(f'Битлинк: {shorten_link(token, user_url)}')
+    except requests.exceptions.HTTPError as e:
+        print(e)
 
 
 if __name__ == '__main__':
     dotenv.load_dotenv()
-
-    BITLY_TOKEN = os.getenv('BITLY_TOKEN')
-    if not BITLY_TOKEN:
-        print('Please, add your Bitly API token to `.env` file.',
-              'See `.env.example`.')
-        exit(1)
-
-    user_url = input('Enter a URL: ')
-    try:
-        if is_bitlink(BITLY_TOKEN, user_url):
-            print(count_clicks(BITLY_TOKEN, user_url))
-        else:
-            print(f'Битлинк: {shorten_link(BITLY_TOKEN, user_url)}')
-    except requests.exceptions.HTTPError as e:
-        print(e)
+    main(os.environ['BITLY_TOKEN'])
