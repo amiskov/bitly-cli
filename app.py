@@ -68,7 +68,9 @@ def count_clicks(token: str, bitlink: str) -> int:
     return resp.json()['total_clicks']
 
 
-def main(token: str) -> None:
+def main():
+    dotenv.load_dotenv()
+    token = os.environ['BITLY_TOKEN']
     user_url = input('Enter a URL: ')
     try:
         if is_bitlink(token, user_url):
@@ -80,5 +82,4 @@ def main(token: str) -> None:
 
 
 if __name__ == '__main__':
-    dotenv.load_dotenv()
-    main(os.environ['BITLY_TOKEN'])
+    main()
