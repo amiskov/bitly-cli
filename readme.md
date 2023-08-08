@@ -1,7 +1,5 @@
 # CLI for Bitly
-A CLI client for [Bitly](https://bitly.com).
-
-For now, it can shorten a given URL and count clicks for a given bitlink (a short URL, provided by Bitly).
+A CLI client for [Bitly](https://bitly.com). It can shorten a given URL or count clicks for a given bitlink (a short URL, provided by Bitly).
 
 ## Requirements
 Add dependencies via [Poetry](https://python-poetry.org):
@@ -11,7 +9,7 @@ $ poetry install
 ```
 
 ## Secrets
-First, grab your Bitly API token [here](https://app.bitly.com/settings/api/) and paste it into `.env` using `.env.example` as a template:
+Grab your Bitly API token [here](https://app.bitly.com/settings/api/) and paste it into `.env` using `.env.example` as a template:
 
 ```sh
 $ cp .env.example .env
